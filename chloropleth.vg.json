@@ -1,0 +1,98 @@
+{
+    "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+    "width": "container",
+    "height": 400,
+    "params": [
+      {
+        "name":"Selected_Year",
+        "value": 2019,
+        "bind":{
+          "input": "range",
+          "min": 2007,
+          "max": 2021,
+          "step": 1,
+          "name": "Year: "
+        }
+      },
+      {
+        "name":"selected_trip",
+        "value": "Overnight Trips pP",
+        "bind":{
+          "input": "select",
+          "options": [
+            "Daytrips pP",
+            "Overnight Trips pP"
+          ],
+          "labels": [
+            "Daytrips",
+            "Overnight Trips"
+          ],
+          "name": "Trip Type: "
+        }
+      }
+    ],
+    "title": "Location of Domestic Holidays in Australia",
+    "projection": {"type": "azimuthalEqualArea", "rotate" : [227, 28], "scale" : 650},
+    "layer": [
+      {
+        
+        "data": {
+          "url": "https://raw.githubusercontent.com/Jared-116/wk10homework/main/data/State_Trips_normalised.csv"
+        },
+        "transform": [
+          {
+            "lookup": "Region",
+            "from": {
+              "data": {
+                "url": "https://raw.githubusercontent.com/Jared-116/wk10homework/main/data/Australia.json",
+                "format": {"type": "topojson", "feature": "Australia"}
+              },
+              "key": "properties.name"
+            },
+            "as": "geo"
+          },
+          {"filter": "datum.Year == Selected_Year"},
+          {"calculate": "datum[selected_trip]", "as": "trips"}
+        ],
+        "layer": [
+            {
+            "mark": {"type": "geoshape", "fill": "lightgray", "stroke": "white"}
+            },
+            {
+                "mark": {"type": "geoshape"},
+                "encoding": {
+                    "shape": {
+                      "field": "geo",
+                      "type": "geojson"
+                    },
+                    "color": {
+                      "field": "trips",
+                      "type": "quantitative",
+                      "title": "Trips per 1000 people"
+                    },
+                    "tooltip": [
+                        {"field": "Region", "title": "Region"},
+                        {"field": "trips", "title": "Trips/1000 People", "format": ".2f"}
+                    ]
+                }
+            },
+            {
+              "layer": [
+                {
+                  "transform": [
+                    {"filter": {
+                      "field": "Region", "equal": "Australian Capital Territory"
+                    }},
+                    {"calculate": "'The ACT has the most overnight trips per capita.'", "as": "annotation"}
+                  ],
+                  "mark": {"type": "text", "align": "center", "dx": 130, "dy": 80, "color": "grey"},
+                  "encoding": {
+                    "text": {"field": "annotation"}
+                }
+                }
+              ]
+              }
+        ]
+        }
+    ]
+  }
